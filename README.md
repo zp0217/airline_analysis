@@ -28,21 +28,10 @@ airline_analysis/
 ├── weekly-performance.qmd      # Day-of-week and rolling flight volume analysis
 ├── cancellations.qmd           # Cancellation reasons and affected airports
 ├── code.qmd                    # All MySQL queries and R visualization code
-│
 ├── plots/                      # All figures used in the site
-│   ├── my_plot1.png            # Max departure delay by airline
-│   ├── my_plot2b.png           # Max early departure by airline
-│   ├── my_plot4.png            # Highest avg delay airport (map)
-│   ├── my_plot5.png            # Worst airport per airline (map)
-│   ├── my_plot5c.png           # Worst airport per airline (chart)
-│   ├── my_plot6.png            # Cancellation reasons (pie chart)
-│   ├── my_plot6b.png           # Top 10 airports by cancellation count
-│   └── my_plot7.png            # Rolling 3-day flight volume
-│
 ├── source_code/
 │   ├── Mini_project_SQLcode.sql       # MySQL queries for data extraction & cleaning
 │   └── R_code_visualization.R         # R code for all visualizations
-│
 ├── _site/                      # Rendered site output (GitHub Pages source)
 ├── styles.css                  # Custom site styles
 ├── _quarto.yml                 # Quarto project configuration
