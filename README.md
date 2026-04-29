@@ -21,6 +21,7 @@ Of 605,979 total flights, 10,016 were cancelled (1.7%), with weather accounting 
 
 # Project structure
 
+```
 airline_analysis/
 │
 ├── index.qmd                   # Homepage and project overview
@@ -37,6 +38,7 @@ airline_analysis/
 ├── _quarto.yml                 # Quarto project configuration
 └── air.pdf                     # Full project report (PDF)
 
+```
 
 # Data source
 
