@@ -1,0 +1,468 @@
+---
+title: "Code & Methods"
+---
+
+This page documents all MySQL queries and R visualization code used to produce the results in this analysis.
+
+---
+
+## R Code
+
+### Data Loading
+
+```r
+library(dplyr)
+library(ggplot2)
+
+d1 <- read.csv("project_1.csv")   # Max delay by airline
+d2 <- read.csv("project_2.csv")   # Max early departure by airline
+d3 <- read.csv("project_3.csv")   # Day-of-week flight counts
+d4 <- read.csv("project_4.csv")   # Highest avg delay airport
+d5 <- read.csv("project_5.csv")   # Highest avg delay airport per airline
+d6 <- read.csv("project_6b.csv")  # Cancellation counts by airport
+d7 <- read.csv("project_7.csv")   # Rolling 3-day flight counts
+```
+
+---
+
+### Figure 1 — Maximum Delay Minutes by Airline
+
+```r
+plot1 <- ggplot(d1, aes(x = reorder(Airline, -MaxDelayMinutes), y = MaxDelayMinutes)) +
+  geom_bar(stat = "identity", fill = "skyblue") +
+  geom_point(aes(x = max_airline, y = max_delay), color = "red", size = 1) +
+  geom_point(aes(x = min_airline, y = min_delay), color = "blue", size = 1) +
+  geom_hline(yintercept = mean_delay, color = "black", linetype = "dashed", size = 1) +
+  labs(
+    title = "Maximum Delay Minutes by Airline",
+    x = "Airline", y = "Maximum Delay Minutes", caption = "Figure 1"
+  ) +
+  annotate("text", x = max_airline, y = max_delay + 100,
+           label = paste("Max:", max_delay), color = "red", size = 2) +
+  annotate("text", x = min_airline, y = min_delay - 100,
+           label = paste("Min:", min_delay), color = "blue", size = 2) +
+  annotate("text", x = 2, y = mean_delay + 100,
+           label = paste("Mean:", round(mean_delay, 1)), color = "black", hjust = 0.5, size = 2) +
+  theme_minimal(base_size = 9) +
+  theme(
+    axis.text.x = element_text(angle = 60, hjust = 1),
+    plot.background = element_rect(fill = "white", color = NA)
+  )
+
+ggsave("my_plot1.png", plot = plot1, width = 6, height = 6)
+```
+
+---
+
+### Figure 2 — Maximum Early Departure Minutes by Airline
+
+```r
+summary_data <- d2 %>%
+  mutate(EarlyDepartureMinutes = abs(EarlyDepartureMinutes)) %>%
+  summarise(
+    Max = max(EarlyDepartureMinutes),
+    Min = min(EarlyDepartureMinutes),
+    Mean = mean(EarlyDepartureMinutes)
+  )
+
+plot2b <- ggplot(d2, aes(x = reorder(Airline, abs(EarlyDepartureMinutes)),
+                          y = abs(EarlyDepartureMinutes))) +
+  geom_bar(stat = "identity", fill = "skyblue") +
+  coord_flip() +
+  geom_text(aes(label = abs(EarlyDepartureMinutes)), hjust = -0.2, size = 3.5) +
+  labs(
+    title = "Maximum Early Departure Minutes by Airline",
+    x = "Airline", y = "Early Departure in Minutes", caption = "Figure 2"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(angle = 60, hjust = 1),
+    plot.background = element_rect(fill = "white", color = NA)
+  )
+
+ggsave("my_plot2b.png", plot = plot2b, width = 6, height = 6)
+```
+
+---
+
+### Figure 4 — Airport Location for Highest Average Departure Delay
+
+```r
+library(maps)
+library(ggrepel)
+
+lat1  <- 43
+long1 <- -124
+air1  <- d4
+air1$Latitude  <- lat1
+air1$Longitude <- long1
+
+usa_map <- map_data("state")
+
+plot4 <- ggplot() +
+  geom_polygon(data = usa_map, aes(x = long, y = lat, group = group),
+               fill = "lightblue", color = "white") +
+  geom_point(data = air1, aes(x = Longitude, y = Latitude),
+             color = "red", size = 2) +
+  geom_text_repel(data = air1,
+                  aes(x = Longitude, y = Latitude,
+                      label = paste(AirportName, AvgDelay, sep = "\n")),
+                  size = 3, box.padding = 0.5, point.padding = 0.5,
+                  max.overlaps = 50) +
+  theme_minimal() +
+  labs(
+    title = "Airport Location for Highest Average Departure Delay",
+    x = "Longitude", y = "Latitude", caption = "Figure 4"
+  ) +
+  theme(
+    plot.title = element_text(hjust = 0.5),
+    plot.background = element_rect(fill = "white", color = NA)
+  )
+
+ggsave("my_plot4.png", plot = plot4, width = 7, height = 7)
+```
+
+---
+
+### Figure 5 — Airports with Highest Average Departure Delay per Airline
+
+```r
+library(ggrepel)
+library(usmap)
+
+airport           <- d5
+airport$latitude  <- a11$Latitude
+airport$longitude <- a11$Longitude
+
+plot5 <- ggplot() +
+  geom_polygon(data = usa_map, aes(x = long, y = lat, group = group),
+               fill = "lightblue", color = "white") +
+  geom_point(data = airport, aes(x = longitude, y = latitude),
+             color = "red", size = 2) +
+  geom_text_repel(data = airport,
+                  aes(x = longitude, y = latitude,
+                      label = paste(AirportName, AirlineName, sep = "\n")),
+                  size = 2, box.padding = 0.5, point.padding = 0.5,
+                  max.overlaps = 50) +
+  theme_minimal() +
+  labs(
+    title = "Airport Location with Highest Average Departure Delays by Airlines",
+    x = "Longitude", y = "Latitude", caption = "Figure 6"
+  ) +
+  theme(
+    plot.title = element_text(hjust = 0.5),
+    plot.background = element_rect(fill = "white", color = NA)
+  )
+
+ggsave("my_plot5.png", plot = plot5, width = 9, height = 7)
+```
+
+---
+
+### Figure 5c — Bar Chart of Highest Average Delay Airport per Airline
+
+```r
+d5 <- d5 %>%
+  mutate(
+    Highlight = case_when(
+      AvgDelay == max(AvgDelay) ~ "Max",
+      AvgDelay == min(AvgDelay) ~ "Min",
+      TRUE ~ "Normal"
+    )
+  )
+
+plot5c <- ggplot(d5, aes(x = reorder(AirlineName, -AvgDelay),
+                          y = AvgDelay, fill = AirportName)) +
+  geom_bar(stat = "identity", aes(alpha = Highlight)) +
+  geom_text(aes(label = round(AvgDelay, 1)), vjust = -0.5, size = 4.5) +
+  scale_alpha_manual(values = c("Max" = 1, "Min" = 1, "Normal" = 0.8), guide = "none") +
+  labs(
+    title = "Airports with Highest Average Departure Delay for Each Airline",
+    x = "Airline", y = "Average Delays (minutes)",
+    fill = "Airport", caption = "Figure 5"
+  ) +
+  theme(
+    axis.text.x = element_text(angle = 90, hjust = 0.5),
+    plot.title = element_text(hjust = 0.5),
+    plot.background = element_rect(fill = "white", color = NA),
+    legend.text = element_text(size = 7),
+    legend.title = element_text(size = 5)
+  )
+
+ggsave("my_plot5c.png", plot = plot5c, width = 10, height = 7)
+```
+
+---
+
+### Figure 7 — Pie Chart of Cancellation Reasons
+
+```r
+overall_reasons <- most_frequent_reasons %>%
+  group_by(reason) %>%
+  summarise(total_cancelcount = sum(total_cancelcount)) %>%
+  mutate(percentage = total_cancelcount / sum(total_cancelcount) * 100)
+
+plot6 <- ggplot(overall_reasons, aes(x = "", y = total_cancelcount, fill = reason)) +
+  geom_bar(width = 1, stat = "identity") +
+  coord_polar("y", start = 0) +
+  geom_text(aes(label = paste0(round(percentage, 1), "%")),
+            position = position_stack(vjust = 0.5)) +
+  labs(title = "Pie Chart of Cancellation Reasons", caption = "Figure 7") +
+  theme(
+    plot.title = element_text(hjust = 0.5),
+    plot.background = element_rect(fill = "white", color = NA)
+  )
+
+ggsave("my_plot6.png", plot = plot6, width = 9, height = 7)
+```
+
+---
+
+### Figure 8 — Top 10 Airports by Cancellation Count
+
+```r
+top_cancellation_airports <- d6 %>%
+  group_by(AirportName) %>%
+  summarise(cancelcount = sum(cancelcount)) %>%
+  arrange(desc(cancelcount)) %>%
+  slice(1:10)
+
+plot6b <- ggplot(top_cancellation_airports,
+                 aes(x = reorder(AirportName, -cancelcount), y = cancelcount)) +
+  geom_bar(stat = "identity", fill = "orange") +
+  labs(
+    title = "Top 10 Airports by Cancellation Counts (All Reasons)",
+    x = "Airport Name", y = "Number of Cancellations", caption = "Figure 8"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.background = element_rect(fill = "white", color = NA),
+    axis.text.x = element_text(angle = 65, hjust = 1, size = 8),
+    axis.text.y = element_text(size = 10),
+    axis.title = element_text(size = 12),
+    plot.title = element_text(size = 14, face = "bold")
+  )
+
+ggsave("my_plot6b.png", plot = plot6b, width = 9, height = 7)
+```
+
+---
+
+### Plot 1 — Flights Over Preceding Three Days
+
+```r
+d7$FlightDate <- as.Date(d7$FlightDate)
+max_flights  <- d7[which.max(d7$flights_over_preceding_three_days), ]
+min_flights  <- d7[which.min(d7$flights_over_preceding_three_days), ]
+mean_flights <- mean(d7$flights_over_preceding_three_days)
+
+plot7 <- ggplot(d7, aes(x = FlightDate, y = flights_over_preceding_three_days)) +
+  geom_line(aes(color = "Trend Line"), size = 1) +
+  geom_point(data = max_flights,
+             aes(x = FlightDate, y = flights_over_preceding_three_days, color = "Max Flights"),
+             size = 4) +
+  geom_point(data = min_flights,
+             aes(x = FlightDate, y = flights_over_preceding_three_days, color = "Min Flights"),
+             size = 4) +
+  geom_hline(aes(yintercept = mean_flights, color = "Mean Flights"),
+             linetype = "dashed", size = 1) +
+  scale_color_manual(values = c(
+    "Trend Line"  = "orange",
+    "Max Flights" = "red",
+    "Min Flights" = "yellow",
+    "Mean Flights" = "blue"
+  )) +
+  labs(
+    title = "Analysis of Flights Over Preceding Three Days",
+    x = "Flight Date", y = "Number of Flights",
+    color = "Legend", caption = "Plot 1"
+  ) +
+  theme_minimal() +
+  scale_x_date(breaks = seq(min(d7$FlightDate), max(d7$FlightDate), by = "1 day")) +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    plot.title = element_text(size = 16, face = "bold"),
+    plot.background = element_rect(fill = "white", color = NA),
+    legend.background = element_rect(fill = "white", color = "black")
+  )
+
+ggsave("my_plot7.png", plot = plot7, width = 9, height = 7)
+```
+
+---
+
+## MySQL Queries
+
+### Query 1 — Maximum Departure Delay by Airline
+
+```sql
+SELECT 
+    Name AS Airline,
+    MAX(DepDelay) AS MaxDelayMinutes
+FROM al_perf
+JOIN L_AIRLINE_ID 
+    ON al_perf.DOT_ID_Reporting_Airline = L_AIRLINE_ID.ID
+GROUP BY Name
+ORDER BY MaxDelayMinutes DESC;
+-- 17 rows returned
+```
+
+---
+
+### Query 2 — Maximum Early Departure by Airline
+
+```sql
+SELECT 
+    Name AS Airline,
+    MIN(DepDelay) AS EarlyDepartureMinutes
+FROM al_perf
+JOIN L_AIRLINE_ID 
+    ON al_perf.DOT_ID_Reporting_Airline = L_AIRLINE_ID.ID
+GROUP BY Name
+ORDER BY EarlyDepartureMinutes ASC;
+-- 17 rows returned
+```
+
+---
+
+### Query 3 — Flight Count Ranked by Day of Week
+
+```sql
+SELECT 
+    L_WEEKDAYS.Day AS Day,
+    COUNT(*) AS NumberOfFlights,
+    RANK() OVER (ORDER BY COUNT(*) DESC) AS Ranking
+FROM al_perf
+JOIN L_WEEKDAYS ON al_perf.DayOfWeek = L_WEEKDAYS.Code
+GROUP BY DayOfWeek
+ORDER BY NumberOfFlights DESC;
+-- 7 rows returned
+```
+
+---
+
+### Query 4 — Airport with Highest Average Departure Delay
+
+```sql
+WITH AirportDelays AS (
+    SELECT 
+        s.OriginAirportID AS AirportID,
+        AVG(s.DepDelayMinutes) AS AvgDelay
+    FROM al_perf s
+    GROUP BY s.OriginAirportID
+)
+SELECT 
+    a.Name AS AirportName,
+    a.ID   AS AirportCode,
+    d.AvgDelay
+FROM AirportDelays d
+JOIN L_AIRPORT_ID a ON d.AirportID = a.ID
+ORDER BY d.AvgDelay DESC
+LIMIT 1;
+-- 1 row returned
+```
+
+---
+
+### Query 5 — Highest Average Delay Airport per Airline
+
+```sql
+WITH airlineairportdelay AS (
+    SELECT 
+        s.DOT_ID_Reporting_Airline AS AirlineID,
+        s.OriginAirportID          AS AirportID,
+        AVG(s.DepDelayMinutes)     AS AvgDelay
+    FROM al_perf s
+    GROUP BY s.DOT_ID_Reporting_Airline, s.OriginAirportID
+),
+maxdelayperairline AS (
+    SELECT d.AirlineID, d.AirportID, d.AvgDelay
+    FROM airlineairportdelay d
+    JOIN (
+        SELECT AirlineID, MAX(AvgDelay) AS MaxDelay
+        FROM airlineairportdelay
+        GROUP BY AirlineID
+    ) m ON d.AirlineID = m.AirlineID AND d.AvgDelay = m.MaxDelay
+)
+SELECT 
+    a.Name AS AirlineName,
+    p.Name AS AirportName,
+    m.AvgDelay
+FROM maxdelayperairline m
+JOIN L_AIRLINE_ID a ON m.AirlineID = a.ID
+JOIN L_AIRPORT_ID p ON m.AirportID = p.ID;
+-- 17 rows returned
+```
+
+---
+
+### Query 6a — Count of Cancelled Flights
+
+```sql
+SELECT * FROM al_perf
+WHERE Cancelled = 1;
+-- 10,016 rows returned
+```
+
+---
+
+### Query 6b — Most Frequent Cancellation Reason per Airport
+
+```sql
+WITH cancel AS (
+    SELECT 
+        s.OriginAirportID AS airportID,
+        c.Reason          AS reason,
+        COUNT(*)          AS cancelcount
+    FROM al_perf s
+    JOIN L_CANCELATION c ON s.CancellationCode = c.Code
+    WHERE s.Cancelled = 1
+    GROUP BY s.OriginAirportID, c.Reason
+),
+frequentreason AS (
+    SELECT airportID, reason, cancelcount
+    FROM cancel
+    WHERE cancelcount = (
+        SELECT MAX(cancelcount)
+        FROM cancel cc
+        WHERE cc.airportID = cancel.airportID
+    )
+)
+SELECT 
+    a.Name AS AirportName,
+    m.reason,
+    m.cancelcount
+FROM frequentreason m
+JOIN L_AIRPORT_ID a ON m.airportID = a.ID;
+-- 285 rows returned
+```
+
+---
+
+### Query 7 — Flights Over Preceding Three Days
+
+```sql
+WITH countflight AS (
+    SELECT FlightDate, COUNT(*) AS dayflights
+    FROM al_perf
+    GROUP BY FlightDate
+),
+averageflightbyday AS (
+    SELECT 
+        c1.FlightDate,
+        CASE 
+            WHEN COUNT(c1.dayflights) < 3 THEN NULL
+            ELSE AVG(c2.dayflights)
+        END AS flights_over_preceding_three_days
+    FROM countflight c1
+    LEFT JOIN countflight c2
+        ON c2.FlightDate BETWEEN DATE_SUB(c1.FlightDate, INTERVAL 3 DAY)
+                              AND DATE_SUB(c1.FlightDate, INTERVAL 1 DAY)
+    GROUP BY c1.FlightDate
+)
+SELECT FlightDate, flights_over_preceding_three_days
+FROM averageflightbyday
+WHERE flights_over_preceding_three_days IS NOT NULL
+ORDER BY FlightDate;
+-- 27 rows returned
+```

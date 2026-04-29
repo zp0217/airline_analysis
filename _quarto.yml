@@ -1,0 +1,33 @@
+project:
+  type: website
+
+website:
+  title: "Air Traffic On-Time Performance Analysis"
+  navbar:
+    left:
+      - href: index.qmd
+        text: Home
+      - href: airline-airport.qmd
+        text: Airline & Airport Analysis
+      - href: weekly-performance.qmd
+        text: Weekly Performance
+      - href: cancellations.qmd
+        text: Cancellation Analysis
+      - href: code.qmd
+        text: Code
+    right:
+      - icon: github
+        href: "#"
+  page-footer:
+    left: "Air Traffic On-Time Performance Analysis — September 2019"
+    right: "By Zoo Un Park"
+
+format:
+  html:
+    theme: cosmo
+    css: styles.css
+    toc: true
+    toc-depth: 3
+    number-sections: false
+    smooth-scroll: true
+    highlight-style: github

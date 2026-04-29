@@ -1,0 +1,50 @@
+---
+title: "Air Traffic On-Time Performance Analysis"
+---
+
+::: {.callout-tip icon=false}
+## 📄 Read the Full Report
+
+The complete project report is available as a PDF.
+
+<a class="btn btn-primary btn-lg" href="air.pdf">Read in browser</a>
+&nbsp;
+<a class="btn btn-outline-primary btn-lg" href="air.pdf" download>⬇ Download PDF</a>
+:::
+
+## Overview
+
+This project examines U.S. domestic airline on-time performance data from September 2019
+using MySQL for data querying and R for visualization. The analysis covers three major topics:
+airline and airport departure delay patterns, weekly flight volume trends, and flight
+cancellation reasons.
+
+On-time performance data contains records of flights by date, airline, originating airport,
+destination airport, and many other operational details. The goal is to identify which airlines
+and airports perform poorly, which days of the week are busiest, and what drives flight
+cancellations.
+
+## Abstract
+
+Numerous flights operate every day across hundreds of destinations in the United States,
+and unexpected schedule changes occur for a wide variety of reasons — weather events,
+carrier issues, and national air system disruptions. With real-time flight data from
+September 1–30, 2019, this project examines a dataset of 605,979 flights across 17 airlines
+and 285 airports to answer key operational questions about airline performance.
+
+The first topic is airline and airport departure analysis. Airlines vary significantly in
+their worst-case delay performance, with Envoy Air recording a maximum departure delay of
+1,753 minutes and Southwest Airlines recording the shortest at 438 minutes. Airport-level
+analysis reveals that Southwest Oregon Regional Airport had the highest average departure
+delay at 43.92 minutes.
+
+The second topic is weekly flight performance analysis. Monday was the busiest day of the
+week with 106,461 flights, while Saturday had the fewest at 67,034. A rolling three-day
+flight count analysis shows a repeating five-day cycle, with Wednesdays consistently
+producing the highest cumulative totals due to the preceding Sunday and Monday peaks.
+
+The third topic is cancellation reason analysis. Of 605,979 total flights, 10,016 were
+cancelled — a rate of 1.7%. Weather was the dominant cancellation cause at 86.2%, consistent
+with September being peak hurricane season in the United States. The most-affected airports
+are concentrated in the southern states, where severe weather conditions are most prevalent
+during this period.
